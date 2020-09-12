@@ -1,0 +1,44 @@
+version: '3'
+services:
+  db:
+    container_name: ubunturus_db
+    image: mysql:5.7
+    environment:
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    volumes:
+        - ./mysql/data:/var/lib/mysql
+
+  php:
+    container_name: ubunturus_php
+    build:
+      context: ./php-fpm
+    volumes:
+      - ../:/var/www/html
+    links:
+      - db
+
+  web:
+    container_name: ubunturus_web
+    build:
+      context: ./apache
+    ports:
+      - "8000:80"
+    volumes:
+      - ../:/usr/local/apache2/htdocs/
+    links:
+      - php
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ubunturus_pma
+    links:
+        - db
+    environment:
+        PMA_HOST: db
+        PMA_PORT: 3306
+        PMA_ARBITRARY: 1
+    ports:
+        - 8081:80
